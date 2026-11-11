@@ -1,2 +1,63 @@
 from langchain.tools import tool
-from data import users
+from data import users_data
+from dotenv import load_dotenv
+import logging
+from objects import PurchaseItem
+from datetime import date
+
+load_dotenv()
+
+logging.basicConfig(
+    level= logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+
+@tool
+def get_user_purchase_history(user : str) -> dict:
+    """This tool takes the username and return dictionary of
+    user purchase history ifg the user exists
+    """
+    logging.info(f"using the get_user_purchase_history tool on user : {user}")
+    if users_data.get(user):
+        return users_data[user]
+    return {"status" : "No username found"}
+
+@tool
+def calculate_right_refund(user : str , items : list[PurchaseItem]) -> str:
+    """This tool takes a list of the item to be returned and the username
+    and will return how much the refund is worth"""
+
+    logging.info(f"using the calculate_right_refund tool on user's : {user} refund")
+
+    if users_data.get(user):
+
+        total_refund = 0
+
+        for item in items:
+            if users_data[user].get(item.name):
+                total_refund += users_data[user][item.name]["price"]
+
+        return f"The value of the refund is : {total_refund}"
+
+    return {"status" : "No username found"}
+
+
+@tool
+def issue_refund_ticket(user : str , refund_amount : int) -> str:
+    """This tool will send a ticket to the right team to return the refund"""
+
+    logging.info(f"using issue_refund_ticket tool for user : {user}")
+
+    return f"A return ticket has been issued successfully with the amount of : {refund_amount}"
+
+
+
+@tool
+def get_today_date() -> str:
+    """Return today's date in YYYY-MM-DD format
+    This tool takes no arguments
+    """
+    logging.info(f"using get_today_date tool")
+    return date.today().isoformat()
+
